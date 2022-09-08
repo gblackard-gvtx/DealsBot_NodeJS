@@ -13,6 +13,7 @@ appsettings.json
 *.pem
 walmart_api_private_key
 .env
+dist
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
