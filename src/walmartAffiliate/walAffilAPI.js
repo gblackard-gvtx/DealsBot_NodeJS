@@ -1,6 +1,8 @@
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import fetch from 'node-fetch';
+import { Logger } from "../utils/logger.js";
+const logger = new Logger();
  export class WalMartAfilliate {
   // read in the encrypted .pem file with password saved in .env file and load it to  the privatekeyobject
   getPKString = (keyPath, walPKPass) => {
@@ -18,6 +20,7 @@ import fetch from 'node-fetch';
       .toString();
     return privateKey;
    } catch (error) {
+    logger.punchLog("getPKString", error);
     
    }
   };
@@ -78,16 +81,16 @@ import fetch from 'node-fetch';
       }
     });
     item.items.forEach((element) => {
-      element.discountPrecent = relDiff(
+      element.discountPrecent =  this.relDiff(
         element.msrp,
         element.salePrice
       ).toFixed(2);
     });
 
-    const FileSystem = require("fs");
-    FileSystem.writeFile("file.json", JSON.stringify(item), (error) => {
+    fs.writeFile("file.json", JSON.stringify(item), (error) => {
       if (error) throw error;
     });
+    logger.punchLog("getItemsByCatagory",`caegory ID: ${category} returned from API and written to file.`)
   };
 }
 

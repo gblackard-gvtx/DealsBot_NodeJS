@@ -1,9 +1,8 @@
 import * as fs from "node:fs";
-import * as path from 'path';
 export class Logger {
-  getLogFile = (date) => {
-    var myLog = `D:/DealsBot_NodeJS/log/${date}.json`;
-""
+  getLogFile = (timestamp) => {
+    let date = timestamp.toISOString().slice(0,10).replace(/-/g,"");
+    const myLog = `D:/DealsBot_NodeJS/log/${date}.json`;
     // See if the file exists
     if (fs.existsSync(myLog)) {
       console.log("Log exits");
@@ -14,7 +13,9 @@ export class Logger {
       fs.writeFileSync(`D:/DealsBot_NodeJS/log/${date}.json`, logJson, "utf-8");
     }
   };
-  punchLog = (method, date, data, timestamp) => {
+  punchLog = (method, data) => {
+    let timestamp = new Date();
+    let date = timestamp.toISOString().slice(0,10).replace(/-/g,"");
     let logJson = fs.readFileSync(`D:/DealsBot_NodeJS/log/${date}.json`, "utf-8");
     let log = JSON.parse(logJson);
     log.push({
@@ -27,9 +28,3 @@ export class Logger {
     fs.writeFileSync(`D:/DealsBot_NodeJS/log/${date}.json`,logJson,"utf-8");
   };
 }
-
-var rightNow = new Date();
-var res = rightNow.toISOString().slice(0,10).replace(/-/g,"");
-const log = new Logger();
-log.getLogFile(res);
-log.punchLog("sample",res,"This is a test of the logging class",rightNow);
