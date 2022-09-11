@@ -1,0 +1,28 @@
+{
+  "catigories": [
+    { "id": "2636", "name": "Video Games" },
+    { "id": "1229749", "name": "Office Supplies" },
+    { "id": "4044", "name": "Home" },
+    { "id": "4171", "name": "Toys" },
+    { "id": "3920", "name": "Books" },
+    { "id": "5440", "name": "Pets" },
+    { "id": "5427", "name": "Baby" },
+    { "id": "5438", "name": "Clothing" },
+    { "id": "7796869", "name": "Musical Instruments" },
+    { "id": "1105910", "name": "Cell Phones" },
+    { "id": "5967908", "name": "Collectibles" },
+    { "id": "4096", "name": "Movies & TV Shows" },
+    { "id": "4104", "name": "Music" },
+    { "id": "3944", "name": "Electronics" },
+    { "id": "1085666", "name": "Beauty" },
+    { "id": "1085632", "name": "Seasonal" },
+    { "id": "1115193", "name": "Household Essentials" },
+    { "id": "7924299", "name": "Premium Beauty" },
+    { "id": "91083", "name": "Auto & Tires" },
+    { "id": "5428", "name": "Patio & Garden" },
+    { "id": "4125", "name": "Sports & Outdoors" },
+    { "id": "1072864", "name": "Home Improvement" },
+    { "id": "1334134", "name": "Arts Crafts & Sewing" },
+    { "id": "6197502", "name": "Industrial & Scientific" }
+  ]
+}

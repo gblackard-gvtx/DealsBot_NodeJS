@@ -20,8 +20,30 @@ export class Logger {
     let log = JSON.parse(logJson);
     log.push({
       method: method,
-      beginTime: timestamp,
       data: data,
+    });
+    logJson = JSON.stringify(log);
+    fs.writeFileSync(`D:/DealsBot_NodeJS/log/${date}.json`,logJson,"utf-8");
+  };
+  punchLogEnter = (method) => {
+    let timestamp = new Date();
+    let date = timestamp.toISOString().slice(0,10).replace(/-/g,"");
+    let logJson = fs.readFileSync(`D:/DealsBot_NodeJS/log/${date}.json`, "utf-8");
+    let log = JSON.parse(logJson);
+    log.push({
+      method: method,
+      beginTime: timestamp,
+    });
+    logJson = JSON.stringify(log);
+    fs.writeFileSync(`D:/DealsBot_NodeJS/log/${date}.json`,logJson,"utf-8");
+  };
+  punchLogExit = (method) => {
+    let timestamp = new Date();
+    let date = timestamp.toISOString().slice(0,10).replace(/-/g,"");
+    let logJson = fs.readFileSync(`D:/DealsBot_NodeJS/log/${date}.json`, "utf-8");
+    let log = JSON.parse(logJson);
+    log.push({
+      method: method,
       endTime: new Date(),
     });
     logJson = JSON.stringify(log);
