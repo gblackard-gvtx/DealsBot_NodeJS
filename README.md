@@ -26,6 +26,7 @@ Your application will now display on the WalmartIO Dashboard. You will notice th
 
 - [PuTTYgen](https://www.puttygen.com/)
 - OpenSSL - I used the versions installed with Git.
+
 WalmartIO does give instructions on how to generate [keypair](https://www.walmart.io/key-tutorial), but they are a little lacking.
 
 - Open CMD and Path to where you have Git installed we are looking for the folder where openssl.exe lives. In my case it was "D:\Program Files\Git\usr\bin".
