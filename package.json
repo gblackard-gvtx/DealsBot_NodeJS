@@ -4,11 +4,14 @@
   "description": "walmart bot that finds deals and post them to social media",
   "main": "app.js",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "test": "jest"
+  },
   "author": "gblackard",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.0.1",
+    "dotenv": "^16.0.3",
+    "mongodb": "^4.11.0",
     "node-fetch": "^2.6.7",
     "nodemon": "^2.0.19"
   },
