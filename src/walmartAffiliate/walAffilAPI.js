@@ -122,22 +122,24 @@ export class WalMartAfilliate {
           if (gcResponse.nextPageExist) {
             count++;
             qParams = gcResponse.nextPage;
-            console.log(count);
+            console.log(category + " Page: " + count);
             const result = await walmartIO.insertMany(item.items, options);
             console.log(`${result.insertedCount} documents were inserted`);
             item.items.length = 0;
-          } else if (gcResponse.nextPageExist == false) {
+          } else if (gcResponse.nextPageExist == false && item.items.length > 0) {
             console.log("more pages not found");
             const result = await walmartIO.insertMany(item.items, options);
             console.log(`${result.insertedCount} documents were inserted`);
             nextPageExist = false;
             console.log("" + nextPageExist);
+            item.items.length = 0;
             break;
           } else {
+            console.log("more pages not found");
             nextPageExist = false;
-            fs.writeFile("else.json", JSON.stringify(gcResponse), (error) => {
-              if (error) throw error;
-            });
+            console.log("" + nextPageExist);
+            item.items.length = 0;
+            break;
           }
         }
       } catch (error) {}
@@ -221,7 +223,6 @@ export class WalMartAfilliate {
       fs.writeFile("GSC.json", JSON.stringify(gcResponse), (error) => {
         if (error) throw error;
       });
-      
     }
   };
 }

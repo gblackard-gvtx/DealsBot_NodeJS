@@ -50,18 +50,17 @@ const walmartParams = {
 };
 //Main function calls the getItemsByCatagory in a nested loop. It loops through categories and specialoffers
 const main = async () => {
-  walMartAfil.getSingleCategory(walmartParams,specialOffer[1],"4096");
-  /*await walMartAfil.clearMongoDB(walmartParams);
+  //walMartAfil.getSingleCategory(walmartParams,specialOffer[1],"4096");
+  await walMartAfil.clearMongoDB(walmartParams);
   for (let i = 0; i < specialOffer.length; i++) {
     for (let index = 0; index < cat.catigories.length; index++) {
-      console.log(cat.catigories[index].name)
       await walMartAfil.getItemsByCatagory(
         walmartParams,
         specialOffer[i],
         cat.catigories[index].id
       );
     }
-  }*/
+  }
 };
 
 main();
