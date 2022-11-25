@@ -1,8 +1,5 @@
-import { config } from "dotenv";
-config();
-import { WalMartAfilliate } from "./walmartAffiliate/walAffilAPI.js";
-import { Logger } from "./utils/logger.js";
-const logger = new Logger();
+import config from "./config.json";
+import { WalMartAfilliate } from "./walmartAffil/walmarteAffiliate";
 const walMartAfil = new WalMartAfilliate();
 const cat = {
   catigories: [
@@ -31,23 +28,23 @@ const cat = {
 };
 
 //Declare a few global variables
-const walPKPass = process.env.WalPKPass;
-const pemPath = process.env.PemPath;
+const walPKPass = config.WalPKPass;
+const pemPath = config.PemPath;
 const specialOffer = ["rollback", "clearance", "specialBuy"];
-const date = new Date();
-logger.getLogFile(date);
+const date = new Date().getTime();
 const pkString = walMartAfil.getPKString(pemPath, walPKPass);
 //Create a param object to pass to the getItemsByCatagory instead of a multi param method
 const walmartParams = {
-  consumerid: process.env.ConsumerID,
-  impactid: process.env.ImpactID,
-  keyVer: process.env.KeyVer,
-  pkString: pkString,
-  mongoDBUser: process.env.MDBUSER,
-  mongoDBPW: process.env.MDBPW,
-  mongoDBClient: process.env.MDBCLIENT,
-  mongoDBColection: process.env.MDBWALCOLECT,
+  consumerid: config.ConsumerID,
+  impactid: config.ImpactID,
+  keyVer: config.KeyVer,
+  pkString: pkString!,
+  mongoDBUser: config.MDBUSER,
+  mongoDBPW: config.MDBPW,
+  mongoDBClient: config.MDBCLIENT,
+  mongoDBColection: config.MDBWALCOLECT,
 };
+// added ! after pkString to utilize non-null assertion
 //Main function calls the getItemsByCatagory in a nested loop. It loops through categories and specialoffers
 const main = async () => {
   //walMartAfil.getSingleCategory(walmartParams,specialOffer[1],"4096");
