@@ -1,13 +1,11 @@
-import * as crypto from "node:crypto";
-import * as fs from "node:fs";
+import * as crypto from "crypto"
+import * as fs from "fs";
 import fetch from "node-fetch";
-import { Logger } from "../utils/logger.js";
 import { MongoClient } from "mongodb";
-const logger = new Logger();
 
 export class WalMartAfilliate {
   // read in the encrypted .pem file with password saved in .env file and load it to  the privatekeyobject
-  getPKString = (keyPath, walPKPass) => {
+  getPKString = (keyPath: string, walPKPass: string) => {
     try {
       const encryptedPrivateKey = fs.readFileSync(keyPath);
       let privateKeyObject = crypto.createPrivateKey({
@@ -18,34 +16,47 @@ export class WalMartAfilliate {
       });
       //export the private key to string to be used in the signature.
       const privateKey = privateKeyObject
-        .export({ format: "pem", type: "pkcs8" })
-        .toString();
+        .export({ format: "pem", type: "pkcs8" }).toString();
       return privateKey;
-    } catch (error) {
-      logger.punchLog("getPKString", error);
-    }
+    } catch (error) {}
   };
 
   // gather data to be used everytime we make a api call
-  getWalSignature = (timestamp, consumerid, keyVer, privateKey) => {
-    logger.punchLogEnter("getWalSignature");
+  getWalSignature = (
+    timestamp: number,
+    consumerid: string,
+    keyVer: string,
+    privateKey: string
+  ) => {
     const strData = consumerid + "\n" + timestamp + "\n" + keyVer + "\n";
     const data = Buffer.from(strData);
 
-    const signature = crypto
+    const signature:string = crypto
       .sign("RSA-SHA256", data, privateKey)
       .toString("base64");
     console.log("Signing done");
-    logger.punchLogExit("getWalSignature");
     return signature;
   };
 
-  relDiff = (a, b) => {
-    return 100 * Math.abs((a - b) / ((a + b) / 2));
+  relDiff = (a: number, b: number) => {
+    let precentage:number = 100 * Math.abs((a - b) / ((a + b) / 2));
+    return precentage
   };
   // This is the bread and butter api call that will get all the data needed and adds it to a json file.
-  getItemsByCatagory = async (walmartParams, specialOffer, category) => {
-    logger.punchLogEnter("getItemsByCatagory");
+  getItemsByCatagory = async (
+    walmartParams: {
+      consumerid: string;
+      keyVer: string;
+      pkString: string;
+      mongoDBUser: string;
+      mongoDBPW: string;
+      mongoDBClient: string;
+      mongoDBColection: string;
+      impactid: string;
+    },
+    specialOffer: string,
+    category: string
+  ) => {
     const mongoURI = `mongodb+srv://${walmartParams.mongoDBUser}:${walmartParams.mongoDBPW}@cluster0.mofm6.mongodb.net/?retryWrites=true&w=majority`;
     const client = new MongoClient(mongoURI);
     let timestamp = Date.now();
@@ -56,7 +67,7 @@ export class WalMartAfilliate {
       walmartParams.keyVer,
       walmartParams.pkString
     );
-    let config = {
+    let config: object = {
       method: "get",
       headers: {
         "WM_CONSUMER.ID": walmartParams.consumerid,
@@ -66,7 +77,21 @@ export class WalMartAfilliate {
       },
     };
     let nextPageExist = true;
-    let item = { items: [] }; // this will be the new array or sales data
+    let items = []
+    interface saleItem{
+      name:string,
+      msrp: number,
+                  salePrice: number,
+                  upc: string,
+                  shortDescription: string,
+                  brandName: string,
+                  thumbnailImage: string,
+                  mediumImage: string,
+                  largeImage: string,
+                  customerRating: string,
+                  affiliateAddToCartUrl: string,
+                  discountPrecentage: string
+    }
     let count = 1;
     let url = "https://developer.api.walmart.com";
     let qParams = `/api-proxy/service/affil/product/v2/paginated/items?category=${category}&publisherId=${walmartParams.impactid}&soldByWmt=1&available=1&specialOffer=${specialOffer}`;
@@ -94,65 +119,63 @@ export class WalMartAfilliate {
           console.log(getcatagoryResponse.json());
         } else {
           let gcResponse = await getcatagoryResponse.json();
-          gcResponse.items.forEach((element) => {
-            if (element.hasOwnProperty("msrp")) {
-              if (
-                parseFloat(this.relDiff(element.msrp, element.salePrice)) > 50
-              ) {
-                item.items.push({
-                  name: element.name,
-                  msrp: element.msrp,
-                  salePrice: element.salePrice,
-                  upc: element.upc,
-                  shortDescription: element.shortDescription,
-                  brandName: element.brandName,
-                  thumbnailImage: element.thumbnailImage,
-                  mediumImage: element.mediumImage,
-                  largeImage: element.largeImage,
-                  customerRating: element.customerRating,
-                  affiliateAddToCartUrl: element.affiliateAddToCartUrl,
+          for (const item of gcResponse.items) {
+            if (item.hasOwnProperty("msrp")&& this.relDiff(item.msrp,item.salePrice)>=50) {
+              let foundItem :saleItem = {
+                name: item.name,
+                  msrp: item.msrp,
+                  salePrice: item.salePrice,
+                  upc: item.upc,
+                  shortDescription: item.shortDescription,
+                  brandName: item.brandName,
+                  thumbnailImage: item.thumbnailImage,
+                  mediumImage: item.mediumImage,
+                  largeImage: item.largeImage,
+                  customerRating: item.customerRating,
+                  affiliateAddToCartUrl: item.affiliateAddToCartUrl,
                   discountPrecentage: this.relDiff(
-                    element.msrp,
-                    element.salePrice
-                  ).toFixed(2),
-                });
+                    item.msrp,
+                    item.salePrice
+                  ).toFixed(2)
               }
+              items.push(foundItem)
             }
-          });
+          }
           if (gcResponse.nextPageExist) {
             count++;
             qParams = gcResponse.nextPage;
             console.log(category + " Page: " + count);
-            const result = await walmartIO.insertMany(item.items, options);
+            const result = await walmartIO.insertMany(items, options);
             console.log(`${result.insertedCount} documents were inserted`);
-            item.items.length = 0;
-          } else if (gcResponse.nextPageExist == false && item.items.length > 0) {
+            items.length = 0;
+          } else if (
+            gcResponse.nextPageExist == false &&
+            items.length > 0
+          ) {
             console.log("more pages not found");
-            const result = await walmartIO.insertMany(item.items, options);
+            const result = await walmartIO.insertMany(items, options);
             console.log(`${result.insertedCount} documents were inserted`);
             nextPageExist = false;
             console.log("" + nextPageExist);
-            item.items.length = 0;
+            items.length = 0;
             break;
           } else {
             console.log("more pages not found");
             nextPageExist = false;
             console.log("" + nextPageExist);
-            item.items.length = 0;
+            items.length = 0;
             break;
           }
         }
       } catch (error) {}
     }
     await client.close();
-    logger.punchLog(
-      "getItemsByCatagory",
-      `category ID: ${category} returned from API and written to file.`
-    );
-    logger.punchLogExit("getItemsByCatagory");
   };
-  getCategoryList = async (consumerid, keyVer, pkString) => {
-    logger.punchLogEnter("getCatagoryList");
+  getCategoryList = async (
+    consumerid: string,
+    keyVer: string,
+    pkString: string
+  ) => {
     let timestamp = Date.now();
     console.log(timestamp);
     let signature = this.getWalSignature(
@@ -161,7 +184,7 @@ export class WalMartAfilliate {
       keyVer,
       pkString
     );
-    let config = {
+    let config: object = {
       method: "get",
       headers: {
         "WM_CONSUMER.ID": consumerid,
@@ -179,11 +202,16 @@ export class WalMartAfilliate {
       if (error) throw error;
     });
   };
-  clearMongoDB = async (params) => {
-    const mongoURI = `mongodb+srv://${params.mongoDBUser}:${params.mongoDBPW}@cluster0.mofm6.mongodb.net/?retryWrites=true&w=majority`;
+  clearMongoDB = async (walmartParams: {
+    mongoDBUser: string;
+    mongoDBPW: string;
+    mongoDBClient: string;
+    mongoDBColection: string;
+  }) => {
+    const mongoURI = `mongodb+srv://${walmartParams.mongoDBUser}:${walmartParams.mongoDBPW}@cluster0.mofm6.mongodb.net/?retryWrites=true&w=majority`;
     const client = new MongoClient(mongoURI);
-    const database = client.db(params.mongoDBClient);
-    const walmartIO = database.collection(params.mongoDBColection);
+    const database = client.db(walmartParams.mongoDBClient);
+    const walmartIO = database.collection(walmartParams.mongoDBColection);
 
     try {
       const results = await walmartIO.deleteMany({});
@@ -193,7 +221,20 @@ export class WalMartAfilliate {
       await client.close();
     }
   };
-  getSingleCategory = async (walmartParams, specialOffer, category) => {
+  getSingleCategory = async (
+    walmartParams: {
+      consumerid: string;
+      keyVer: string;
+      pkString: string;
+      mongoDBUser: string;
+      mongoDBPW: string;
+      mongoDBClient: string;
+      mongoDBColection: string;
+      impactid: string;
+    },
+    specialOffer: string,
+    category: string
+  ) => {
     let timestamp = Date.now();
     console.log(timestamp);
     let signature = this.getWalSignature(
@@ -202,7 +243,7 @@ export class WalMartAfilliate {
       walmartParams.keyVer,
       walmartParams.pkString
     );
-    let config = {
+    let config: object = {
       method: "get",
       headers: {
         "WM_CONSUMER.ID": walmartParams.consumerid,

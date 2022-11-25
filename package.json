@@ -1,19 +1,20 @@
 {
-  "name": "walmartaffiliate",
+  "name": "dealsbot_nodejs_ts",
   "version": "1.0.0",
-  "description": "walmart bot that finds deals and post them to social media",
-  "main": "app.js",
-  "type": "module",
-  "scripts": {
-    "test": "jest"
-  },
-  "author": "gblackard",
-  "license": "ISC",
+  "description": "",
+  "main": "index.js",
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "mongodb": "^4.11.0",
-    "node-fetch": "^2.6.7",
-    "nodemon": "^2.0.19"
+    "@types/node": "^18.11.9",
+    "bunyan": "^1.8.15",
+    "mongodb": "^4.12.0",
+    "node-fetch": "^2.6.7"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/node-fetch": "^2.6.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
 }
