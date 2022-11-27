@@ -1,5 +1,5 @@
 import config from "./config.json";
-import { WalMartAfilliate } from "./walmartAffil/walmarteAffiliate";
+import { WalMartAfilliate } from "./walmartAffiliate/walmarteAffiliate";
 const walMartAfil = new WalMartAfilliate();
 const cat = {
   catigories: [
