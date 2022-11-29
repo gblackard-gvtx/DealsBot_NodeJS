@@ -38,3 +38,4 @@ WalmartIO does give instructions on how to generate [keypair](https://www.walmar
 
 [### Walmart Affiliate API](src/walmartAffiliate/walmartAffiliate.md)
 -----
+This is the implmentation of the walmart affiliate api.
