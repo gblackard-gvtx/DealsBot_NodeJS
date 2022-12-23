@@ -1,5 +1,7 @@
 import config from "./config.json";
-import { WalMartAfilliate } from "./walmartAffil/walmarteAffiliate";
+import { WalMartAfilliate } from "./walmartAffiliate/walmarteAffiliate";
+import { Logger } from "./utils/logger";
+const logger = Logger.createLogger(config.LogLevel);
 const walMartAfil = new WalMartAfilliate();
 const cat = {
   catigories: [

@@ -1,6 +1,7 @@
 # DealsBot_NodeJS
 
-DealsBot is a tool for people to programatically find deals via retailer API and publish them to social media platforms such as Twitter and Instagram.
+DealsBot is a tool for people to programatically find deals via retailer/affiliate APIs and publish them to social media platforms such as Twitter and Instagram.
+DealsBot is written in Typescript and tested in nodejs version 14.
 
 ## Getting Started with Walmart Affiliate API
 
@@ -34,3 +35,7 @@ WalmartIO does give instructions on how to generate [keypair](https://www.walmar
 - -des3 will require you to create a password.  Make sure you put this somewhere safe like your .env file(and gitignore it. ).
 -  Next open Puttygen and load your key pair. Once loaded copy the public key and paste it into the public key upload on WalmartIO dashboard. 
 - Click Conversion on Puttygen  then export OpenSSHKey. This file will be in a .pem file and will be used to sign the api headers. 
+
+[### Walmart Affiliate API](src/walmartAffiliate/walmartAffiliate.md)
+-----
+This is the implmentation of the walmart affiliate api.
