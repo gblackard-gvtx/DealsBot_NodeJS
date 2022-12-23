@@ -2,11 +2,17 @@ import * as crypto from "crypto"
 import * as fs from "fs";
 import fetch from "node-fetch";
 import { MongoClient } from "mongodb";
+import config from "../config.json";
+import { Logger } from "../utils/logger";
+const logger = Logger.createLogger(config.LogLevel);
+
+
 
 export class WalMartAfilliate {
   // read in the encrypted .pem file with password saved in .env file and load it to  the privatekeyobject
   getPKString = (keyPath: string, walPKPass: string) => {
     try {
+      logger.info("Reading in private key");
       const encryptedPrivateKey = fs.readFileSync(keyPath);
       let privateKeyObject = crypto.createPrivateKey({
         format: "pem",
@@ -18,7 +24,9 @@ export class WalMartAfilliate {
       const privateKey = privateKeyObject
         .export({ format: "pem", type: "pkcs8" }).toString();
       return privateKey;
-    } catch (error) {}
+    } catch (error) {
+      logger.error(error);
+    }
   };
 
   // gather data to be used everytime we make a api call
@@ -28,19 +36,20 @@ export class WalMartAfilliate {
     keyVer: string,
     privateKey: string
   ) => {
+    logger.info("Signing");
     const strData = consumerid + "\n" + timestamp + "\n" + keyVer + "\n";
     const data = Buffer.from(strData);
 
     const signature:string = crypto
       .sign("RSA-SHA256", data, privateKey)
       .toString("base64");
-    console.log("Signing done");
+      logger.info("Signing done");
     return signature;
   };
-
+// returns the relative difference between two numbers returns a number
   relDiff = (a: number, b: number) => {
     let precentage:number = 100 * Math.abs((a - b) / ((a + b) / 2));
-    return precentage
+    return precentage;
   };
   // This is the bread and butter api call that will get all the data needed and adds it to a json file.
   getItemsByCatagory = async (
@@ -57,10 +66,11 @@ export class WalMartAfilliate {
     specialOffer: string,
     category: string
   ) => {
+    logger.info("Starting category: " + category);
     const mongoURI = `mongodb+srv://${walmartParams.mongoDBUser}:${walmartParams.mongoDBPW}@cluster0.mofm6.mongodb.net/?retryWrites=true&w=majority`;
     const client = new MongoClient(mongoURI);
     let timestamp = Date.now();
-    console.log(timestamp);
+    logger.info(`Timestamp: ${timestamp}`);
     let signature = this.getWalSignature(
       timestamp,
       walmartParams.consumerid,
@@ -79,18 +89,19 @@ export class WalMartAfilliate {
     let nextPageExist = true;
     let items = []
     interface saleItem{
+      category: string,
       name:string,
       msrp: number,
-                  salePrice: number,
-                  upc: string,
-                  shortDescription: string,
-                  brandName: string,
-                  thumbnailImage: string,
-                  mediumImage: string,
-                  largeImage: string,
-                  customerRating: string,
-                  affiliateAddToCartUrl: string,
-                  discountPrecentage: string
+      salePrice: number,
+      upc: string,
+      shortDescription: string,
+      brandName: string,
+      thumbnailImage: string,
+      mediumImage: string,
+      largeImage: string,
+      customerRating: string,
+      affiliateAddToCartUrl: string,
+      discountPrecentage: string|number
     }
     let count = 1;
     let url = "https://developer.api.walmart.com";
@@ -101,7 +112,7 @@ export class WalMartAfilliate {
         const walmartIO = database.collection(walmartParams.mongoDBColection);
         const options = { ordered: true };
         if (Date.now() > timestamp + 160000) {
-          console.log("160 seconds");
+          logger.info("160 seconds");
           timestamp = Date.now();
           signature = this.getWalSignature(
             timestamp,
@@ -109,19 +120,21 @@ export class WalMartAfilliate {
             walmartParams.keyVer,
             walmartParams.pkString
           );
-          console.log(timestamp);
-          console.log(signature);
+          logger.info("New Signature: " + signature);
+          logger.info("New Timestamp: " + timestamp);
         }
-        console.log(url + qParams);
+        logger.info("Requesting: " + url + qParams);
         const getcatagoryResponse = await fetch(url + qParams, config);
-        console.log("Request Status: " + getcatagoryResponse.status);
+        logger.info("Request Status: " + getcatagoryResponse.status);
         if (getcatagoryResponse.status !== 200) {
-          console.log(getcatagoryResponse.json());
+          logger.error("Error: " + getcatagoryResponse.status);
+          logger.info("Response: " + getcatagoryResponse.json());
         } else {
           let gcResponse = await getcatagoryResponse.json();
           for (const item of gcResponse.items) {
             if (item.hasOwnProperty("msrp")&& this.relDiff(item.msrp,item.salePrice)>=50) {
               let foundItem :saleItem = {
+                category: category,
                 name: item.name,
                   msrp: item.msrp,
                   salePrice: item.salePrice,
@@ -133,10 +146,10 @@ export class WalMartAfilliate {
                   largeImage: item.largeImage,
                   customerRating: item.customerRating,
                   affiliateAddToCartUrl: item.affiliateAddToCartUrl,
-                  discountPrecentage: this.relDiff(
+                  discountPrecentage: parseFloat(this.relDiff(
                     item.msrp,
                     item.salePrice
-                  ).toFixed(2)
+                  ).toFixed(2))
               }
               items.push(foundItem)
             }
@@ -144,25 +157,25 @@ export class WalMartAfilliate {
           if (gcResponse.nextPageExist) {
             count++;
             qParams = gcResponse.nextPage;
-            console.log(category + " Page: " + count);
+            logger.info(category + " Page: " + count);
             const result = await walmartIO.insertMany(items, options);
-            console.log(`${result.insertedCount} documents were inserted`);
+            logger.info(`${result.insertedCount} documents were inserted`);
             items.length = 0;
           } else if (
             gcResponse.nextPageExist == false &&
             items.length > 0
           ) {
-            console.log("more pages not found");
+            logger.info("more pages not found");
             const result = await walmartIO.insertMany(items, options);
-            console.log(`${result.insertedCount} documents were inserted`);
+            logger.info(`$result.insertedCount} documents were inserted`);
             nextPageExist = false;
-            console.log("" + nextPageExist);
+            logger.info("nextPageExist: " + nextPageExist);
             items.length = 0;
             break;
           } else {
-            console.log("more pages not found");
+            logger.info("more pages not found");
             nextPageExist = false;
-            console.log("" + nextPageExist);
+            logger.info("nextPageExist: " + nextPageExist);
             items.length = 0;
             break;
           }
@@ -177,7 +190,7 @@ export class WalMartAfilliate {
     pkString: string
   ) => {
     let timestamp = Date.now();
-    console.log(timestamp);
+    logger.info(`Timestamp: ${timestamp}`);
     let signature = this.getWalSignature(
       timestamp,
       consumerid,
@@ -196,7 +209,7 @@ export class WalMartAfilliate {
     let URL =
       "https://developer.api.walmart.com/api-proxy/service/affil/product/v2/taxonomy";
     const getcatagorylistResponse = await fetch(URL, config);
-    console.log("Request Status: " + getcatagorylistResponse.status);
+    logger.info("Request Status: " + getcatagorylistResponse.status);
     let gclResponse = await getcatagorylistResponse.json();
     fs.writeFile("tax.json", JSON.stringify(gclResponse), (error) => {
       if (error) throw error;
@@ -215,7 +228,7 @@ export class WalMartAfilliate {
 
     try {
       const results = await walmartIO.deleteMany({});
-      console.log("Deleted " + results.deletedCount + " documents");
+      logger.info("Deleted " + results.deletedCount + " documents");
     } catch (error) {
     } finally {
       await client.close();
@@ -236,7 +249,7 @@ export class WalMartAfilliate {
     category: string
   ) => {
     let timestamp = Date.now();
-    console.log(timestamp);
+    logger.info(`Timestamp: ${timestamp}`);
     let signature = this.getWalSignature(
       timestamp,
       walmartParams.consumerid,
@@ -254,11 +267,11 @@ export class WalMartAfilliate {
     };
     let url = "https://developer.api.walmart.com";
     let qParams = `/api-proxy/service/affil/product/v2/paginated/items?category=${category}&publisherId=${walmartParams.impactid}&soldByWmt=1&available=1&specialOffer=${specialOffer}`;
-    console.log(url + qParams);
+    logger.info(`Request URL: ${url} + ${qParams}`);
     const getcatagoryResponse = await fetch(url + qParams, config);
-    console.log("Request Status: " + getcatagoryResponse.status);
+   logger.info("Request Status: " + getcatagoryResponse.status);
     if (getcatagoryResponse.status !== 200) {
-      console.log(getcatagoryResponse.json());
+      logger.info(getcatagoryResponse.json());
     } else {
       let gcResponse = await getcatagoryResponse.json();
       fs.writeFile("GSC.json", JSON.stringify(gcResponse), (error) => {
