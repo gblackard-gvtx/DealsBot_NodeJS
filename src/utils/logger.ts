@@ -6,7 +6,7 @@ export class Logger {
     // if it does not exist it will create it
     public static checkForLogFile = () => {
         const date = new Date();
-        const logFile = `./logs/${date.getFullYear()}-(${date.getMonth()}+1)-${date.getDate()}.log`;
+        const logFile = `./logs/${date.getFullYear()}-(${date.getMonth()})-${date.getDate()}.log`;
         if (!fs.existsSync(logFile)) {
             fs.writeFileSync(logFile, "");
         }

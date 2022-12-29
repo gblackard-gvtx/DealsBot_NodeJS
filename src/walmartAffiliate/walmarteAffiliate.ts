@@ -89,6 +89,7 @@ export class WalMartAfilliate {
     let nextPageExist = true;
     let items = []
     interface saleItem{
+      retailer: string,
       category: string,
       name:string,
       msrp: number,
@@ -134,6 +135,7 @@ export class WalMartAfilliate {
           for (const item of gcResponse.items) {
             if (item.hasOwnProperty("msrp")&& this.relDiff(item.msrp,item.salePrice)>=50) {
               let foundItem :saleItem = {
+                retailer: "Walmart",
                 category: category,
                 name: item.name,
                   msrp: item.msrp,
@@ -167,7 +169,7 @@ export class WalMartAfilliate {
           ) {
             logger.info("more pages not found");
             const result = await walmartIO.insertMany(items, options);
-            logger.info(`$result.insertedCount} documents were inserted`);
+            logger.info(`${result.insertedCount} documents were inserted`);
             nextPageExist = false;
             logger.info("nextPageExist: " + nextPageExist);
             items.length = 0;
@@ -179,6 +181,7 @@ export class WalMartAfilliate {
             items.length = 0;
             break;
           }
+          logger.info("Proccess Complete");
         }
       } catch (error) {}
     }

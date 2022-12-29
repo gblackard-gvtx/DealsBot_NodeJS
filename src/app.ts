@@ -44,7 +44,7 @@ const walmartParams = {
   mongoDBUser: config.MDBUSER,
   mongoDBPW: config.MDBPW,
   mongoDBClient: config.MDBCLIENT,
-  mongoDBColection: config.MDBWALCOLECT,
+  mongoDBColection: config.MDBCollection,
 };
 // added ! after pkString to utilize non-null assertion
 //Main function calls the getItemsByCatagory in a nested loop. It loops through categories and specialoffers
