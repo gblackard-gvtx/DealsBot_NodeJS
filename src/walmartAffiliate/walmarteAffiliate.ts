@@ -64,9 +64,10 @@ export class WalMartAfilliate {
       impactid: string;
     },
     specialOffer: string,
-    category: string
+    categoryId: string,
+    categoryName: string
   ) => {
-    logger.info("Starting category: " + category);
+    logger.info("Starting category: " + categoryId);
     const mongoURI = `mongodb+srv://${walmartParams.mongoDBUser}:${walmartParams.mongoDBPW}@cluster0.mofm6.mongodb.net/?retryWrites=true&w=majority`;
     const client = new MongoClient(mongoURI);
     let timestamp = Date.now();
@@ -90,7 +91,8 @@ export class WalMartAfilliate {
     let items = []
     interface saleItem{
       retailer: string,
-      category: string,
+      categoryId: string,
+      categoryName: string,
       name:string,
       msrp: number,
       salePrice: number,
@@ -106,7 +108,7 @@ export class WalMartAfilliate {
     }
     let count = 1;
     let url = "https://developer.api.walmart.com";
-    let qParams = `/api-proxy/service/affil/product/v2/paginated/items?category=${category}&publisherId=${walmartParams.impactid}&soldByWmt=1&available=1&specialOffer=${specialOffer}`;
+    let qParams = `/api-proxy/service/affil/product/v2/paginated/items?category=${categoryId}&publisherId=${walmartParams.impactid}&soldByWmt=1&available=1&specialOffer=${specialOffer}`;
     while (nextPageExist) {
       try {
         const database = client.db(walmartParams.mongoDBClient);
@@ -136,7 +138,8 @@ export class WalMartAfilliate {
             if (item.hasOwnProperty("msrp")&& this.relDiff(item.msrp,item.salePrice)>=50) {
               let foundItem :saleItem = {
                 retailer: "Walmart",
-                category: category,
+                categoryId: categoryId,
+                categoryName: categoryName,
                 name: item.name,
                   msrp: item.msrp,
                   salePrice: item.salePrice,
@@ -159,7 +162,7 @@ export class WalMartAfilliate {
           if (gcResponse.nextPageExist) {
             count++;
             qParams = gcResponse.nextPage;
-            logger.info(category + " Page: " + count);
+            logger.info(categoryName + " Page: " + count);
             const result = await walmartIO.insertMany(items, options);
             logger.info(`${result.insertedCount} documents were inserted`);
             items.length = 0;

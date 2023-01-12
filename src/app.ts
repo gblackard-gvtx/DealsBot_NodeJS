@@ -56,7 +56,8 @@ const main = async () => {
       await walMartAfil.getItemsByCatagory(
         walmartParams,
         specialOffer[i],
-        cat.catigories[index].id
+        cat.catigories[index].id,
+        cat.catigories[index].name
       );
     }
   }
