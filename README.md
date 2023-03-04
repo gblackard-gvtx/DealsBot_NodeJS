@@ -1,6 +1,6 @@
 # DealsBot_NodeJS
 
-DealsBot is a tool for people to programatically find deals via retailer/affiliate APIs and publish them to social media platforms such as Twitter and Instagram.
+DealsBot is a tool for people to programatically find deals via retailer/affiliate APIs and publish them to an aggregated database. From there a Frontend of your can be added to promote your own site.
 DealsBot is written in Typescript and tested in nodejs version 14.
 
 ## Getting Started with Walmart Affiliate API
